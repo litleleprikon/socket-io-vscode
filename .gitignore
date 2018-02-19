@@ -2,7 +2,6 @@ out
 .vscode-test/
 .vsix
 out/test/**
-test/**
 
 # Logs
 logs
