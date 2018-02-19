@@ -1,6 +1,6 @@
 {
     "name": "socket-io-vscode",
-    "displayName": "Socket.io VSCode",
+    "displayName": "Socket.io client for VSCode",
     "description": "Extension to communicate with Socket.io server from VSCode",
     "version": "0.0.1",
     "publisher": "litleleprikon",
@@ -9,6 +9,11 @@
     },
     "categories": [
         "Other"
+    ],
+    "keywords": [
+        "socket",
+        "socket.io",
+        "websockets"
     ],
     "license": "MIT",
     "icon": "images/icon.png",
@@ -74,9 +79,15 @@
         "test": "node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {
+        "@types/glob": "^5.0.30",
         "@types/mocha": "^2.2.42",
         "@types/node": "^7.0.43",
         "@types/socket.io-client": "^1.4.32",
+        "decache": "^4.1.0",
+        "glob": "^7.1.1",
+        "istanbul": "^0.4.5",
+        "mocha": "^3.2.0",
+        "remap-istanbul": "^0.8.4",
         "typescript": "^2.7.1",
         "vscode": "^1.1.6"
     },

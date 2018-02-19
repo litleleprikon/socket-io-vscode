@@ -1,4 +1,4 @@
-# socket-io-vscode
+# Socket.io client for VSCode
 Extension to communicate with Socket.io 2 server from VSCode.
 
 [![Build Status](https://travis-ci.org/litleleprikon/socket-io-vscode.svg?branch=master)](https://travis-ci.org/litleleprikon/socket-io-vscode)
