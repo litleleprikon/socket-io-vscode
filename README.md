@@ -1,6 +1,10 @@
 # socket-io-vscode
 Extension to communicate with Socket.io 2 server from VSCode.
 
+[![Build Status](https://travis-ci.org/litleleprikon/socket-io-vscode.svg?branch=master)](https://travis-ci.org/litleleprikon/socket-io-vscode)
+
+---
+
 This extension allows to establish connection to Socket.io server, emit events and receive events from server.
 
 ## Usage
