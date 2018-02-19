@@ -1,0 +1,71 @@
+{
+    "name": "socket-io-vscode",
+    "displayName": "Socket.io VSCode",
+    "description": "Extension to communicate with Socket.io server from VSCode",
+    "version": "0.0.1",
+    "publisher": "litleleprikon",
+    "engines": {
+        "vscode": "^1.19.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onCommand:extension.connect"
+    ],
+    "main": "./out/extension",
+    "contributes": {
+        "views": {
+            "explorer": [
+                {
+                    "id": "socket-io-events",
+                    "name": "Socket.io Events"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "extension.connect",
+                "title": "Connect",
+                "category": "Socket.io"
+            },
+            {
+                "command": "extension.emit",
+                "title": "Emit",
+                "category": "Socket.io"
+            },
+            {
+                "command": "extension.on",
+                "title": "On",
+                "category": "Socket.io"
+            },
+            {
+                "command": "extension.disconnect",
+                "title": "Disconnect",
+                "category": "Socket.io"
+            },
+            {
+                "command": "extension.openEventsByName",
+                "title": "Disconnect",
+                "category": "Socket.io"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "@types/mocha": "^2.2.42",
+        "@types/node": "^7.0.43",
+        "@types/socket.io-client": "^2.0.4",
+        "typescript": "^2.7.1",
+        "vscode": "^1.1.6"
+    },
+    "dependencies": {
+        "socket.io-client": "^2.0.4"
+    }
+}
