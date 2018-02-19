@@ -10,6 +10,21 @@
     "categories": [
         "Other"
     ],
+    "license": "MIT",
+    "icon": "images/icon.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/litleleprikon/socket-io-vscode.git"
+    },
+    "homepage": "https://github.com/litleleprikon/socket-io-vscode/blob/master/README.md",
+    "bugs": {
+        "url": "https://github.com/litleleprikon/socket-io-vscode/issues",
+        "email": "iam@litleleprikon.me"
+    },
+    "galleryBanner": {
+        "color": "#90D8B0",
+        "theme": "dark"
+    },
     "activationEvents": [
         "onCommand:extension.connect"
     ],
@@ -61,7 +76,7 @@
     "devDependencies": {
         "@types/mocha": "^2.2.42",
         "@types/node": "^7.0.43",
-        "@types/socket.io-client": "^2.0.4",
+        "@types/socket.io-client": "^1.4.32",
         "typescript": "^2.7.1",
         "vscode": "^1.1.6"
     },

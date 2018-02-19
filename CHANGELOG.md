@@ -1,7 +1,9 @@
 # Change Log
 All notable changes to the "socket-io-vscode" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## [0.0.1] 2018-02-20
 
-## [Unreleased]
-- Initial release
+* Connect to socket.io server
+* Handle disconnect, error events
+* Emit events with data to server
+* Subscribe to events and list them on tree bar
