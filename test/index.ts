@@ -197,6 +197,7 @@ class CoverageRunner {
         let coverageFile = paths.resolve(reportingDir, "coverage" + pidExt + ".json");
 
         _mkDirIfExists(reportingDir); // yes, do this again since some test runners could clean the dir initially created
+
         fs.writeFileSync(coverageFile, JSON.stringify(cov), "utf8");
 
         let remappedCollector = remapIstanbul.remap(cov, {warn: warning => {

@@ -33,7 +33,7 @@
     "activationEvents": [
         "onCommand:extension.connect"
     ],
-    "main": "./out/extension",
+    "main": "./out/src/extension",
     "contributes": {
         "views": {
             "explorer": [
@@ -76,7 +76,8 @@
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "node ./node_modules/vscode/bin/test"
+        "test": "npm run compile && node ./node_modules/vscode/bin/test",
+        "coverage": "nyc mocha test --recursive --ui tdd"
     },
     "devDependencies": {
         "@types/glob": "^5.0.30",
@@ -87,7 +88,8 @@
         "glob": "^7.1.1",
         "istanbul": "^0.4.5",
         "mocha": "^3.2.0",
-        "remap-istanbul": "^0.8.4",
+        "nyc": "^11.4.1",
+        "remap-istanbul": "^0.10.1",
         "typescript": "^2.7.1",
         "vscode": "^1.1.6"
     },
