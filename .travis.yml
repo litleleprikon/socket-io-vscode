@@ -2,6 +2,11 @@ language: node_js
 node_js:
   - "7.4"
 
+addons:
+  code_climate:
+      repo_token:
+        secure: "P8BxBcnW5Zxsfl/m6bYPiX7esgQ/DlEeMIKUrtzMbtA/gqLAAyAUWO5jefcui6/uKKHwuxyNDd9XVfHrJJ9yUCcYg9eV/wt4+mFMeMMvSYRiZAtOfEeaEbGClEzedmiRVt8pnTmfnWaw2BYHHmwzIuPYqVkg10t1x2qu34FezMOt9eo2bgaRkSAns41Cl7YCzrSkuOzOcWvyykJ5pIhxGNCGTViZ1LxZFqWKPU5JsC8C0F+LxUBjSE/5bQZRTMWl/27N7sfiW5ZxwDHcWsOWa63M8GjtHoU8dUW4/+u0cfjMWvTolLmJpeDcW5rnP5oxAxvRuZWmAzXlm4lB3nlE7/E/OG32Kbvdjmwrf/BjjbnoZCdFYzmSNn/6K5mrq8JYTtWCLVY/Xp/sx7G1JcuIgZk2DVNthpqonwrgEIf0QGwYYPpmuLuufYU3xh73u3o13bQaUjH+lN/7J1ho0qnM45QEEakQHxkTRNTpe9GPUtsQSIfo9/lFOZam3USp6yIjsr0D3ULF0VcRGdEan5qDr+REn0WhvQR+9plhZNFz2+qH4SicC0rLvJJTd3v01hTKq8AcFZbIToENiZVsqpbMZNtXwnhFPBDv+fajr98Zz88dQWzkoRQmgJmSODPUJUQngOGMkBFh6NJDwaPucorGd+zl+3gyTIgg++MKTMhacYk="
+
 before_install:
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
       export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
