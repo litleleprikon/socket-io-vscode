@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import SocketIOConnection from './SocketIOConnection';
 import {Event as SocketIOEvent} from './SocketIOConnection';
 import SocketIOEventsTreeProvider from './SocketIOEventsTreeProvider';
+import SocketIOEventDataContentProvider from './SocketIOEventDataContentProvider';
 
 export default class VSIntegrationLayer {
 
@@ -25,7 +26,14 @@ export default class VSIntegrationLayer {
     }
 
     async openEmitedEventsByName (event: SocketIOEvent) {
-        await vscode.window.showInformationMessage(`Opened events: ${event.name}`)
+        var doc = vscode.window.activeTextEditor.document;
+        let uri = vscode.Uri.parse(`${SocketIOEventDataContentProvider.scheme}://./socket-io-event.json`)
+        // var untitledFile = doc.uri.with({
+        //     scheme: SocketIOEventDataContentProvider.scheme,
+        //     path: './socket-io-event.json'
+        // });
+        vscode.workspace.openTextDocument(uri);
+        // await vscode.window.showInformationMessage(`Opened events: ${event.name}`)
     }
 
     redrawEventsTree() {

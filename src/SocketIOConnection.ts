@@ -11,7 +11,7 @@ interface Event {
 
 export {Event}
 
-/** 
+/**
  * Middleware between the Socket.io and logic of an application.
  * Handles connection to certain socket.io endpoint and stores events.
 */

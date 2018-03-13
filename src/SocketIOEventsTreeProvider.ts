@@ -42,14 +42,24 @@ export default class SocketIOEventsTreeProvider implements TreeDataProvider<Sock
     }
 }
 
+interface IIconPath {
+    light: string,
+    dark: string
+}
+
+function getIconPaths(icon: string): IIconPath {
+    return <IIconPath> {
+        light: path.join(__filename, '..', '..', 'resources', 'light', `${icon}.png`),
+        dark: path.join(__filename, '..', '..', 'resources', 'dark', `${icon}.png`)
+    };
+}
+
 class SocketIOEventsItem extends TreeItem {
     public iconPath;
     public command;
 
     constructor(
         public readonly name: string,
-        // public readonly collapsibleState: TreeItemCollapsibleState,
-        // public readonly command?: Command,
         public readonly value?: SocketIOEvent
     ) {
         super(name, TreeItemCollapsibleState.None);
@@ -58,10 +68,7 @@ class SocketIOEventsItem extends TreeItem {
             title: 'test',
             arguments: [this.value],
         };
-        this.iconPath = {
-            light: path.join(__filename, '..', '..', 'resources', 'light', 'Event.png'),
-            dark: path.join(__filename, '..', '..', 'resources', 'dark', 'Event.png')
-        };
+        // this.iconPath = getIconPaths('Event');
     }
 }
 
@@ -72,9 +79,6 @@ class SocketIOEventsNameItem extends TreeItem {
         public readonly name: string,
     ) {
         super(name, TreeItemCollapsibleState.Collapsed);
-        this.iconPath = {
-            light: path.join(__filename, '..', '..', 'resources', 'light', 'Events.png'),
-            dark: path.join(__filename, '..', '..', 'resources', 'dark', 'Events.png')
-        };
+        // this.iconPath = this.iconPath = getIconPaths('Events');
     }
 }

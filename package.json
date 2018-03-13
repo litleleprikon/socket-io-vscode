@@ -31,7 +31,10 @@
         "theme": "dark"
     },
     "activationEvents": [
-        "onCommand:extension.connect"
+        "onCommand:extension.connect",
+        "onCommand:extension.emit",
+        "onCommand:extension.on",
+        "onCommand:extension.disconnect"
     ],
     "main": "./out/src/extension",
     "contributes": {
@@ -84,6 +87,7 @@
         "@types/mocha": "^2.2.42",
         "@types/node": "^7.0.43",
         "@types/socket.io-client": "^1.4.32",
+        "chai": "^4.1.2",
         "decache": "^4.1.0",
         "glob": "^7.1.1",
         "istanbul": "^0.4.5",
