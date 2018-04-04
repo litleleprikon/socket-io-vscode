@@ -31,10 +31,6 @@ export default class VSCommunicationLayer implements Disposable {
         }
     }
 
-    public redrawEventsTree() {
-        // this.treeProvider.refresh();
-    }
-
     public async onError(url: string, error: Error) {
         await window.showErrorMessage(`on url ${url}. [${error.toString()}]`);
     }
@@ -42,11 +38,6 @@ export default class VSCommunicationLayer implements Disposable {
     public async onDisconnect(url: string) {
         await window.showWarningMessage(`Disconnected from ${url}`);
     }
-
-    // async onEmit(event) {
-    //     this.treeProvider.setData(this.connection.getEvents())
-    //     this.redrawEventsTree();
-    // }
 
     public async emitCalled() {
         const event: string = await window.showInputBox({prompt: 'Please type event name'});

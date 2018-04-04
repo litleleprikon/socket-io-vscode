@@ -1,4 +1,5 @@
 import { connect } from 'socket.io-client';
+import { Event } from 'vscode';
 export interface IEvent {
     name: string;
     datetime: Date;
@@ -8,10 +9,12 @@ export interface IEvent {
 
 interface IErrors {
     NoEvent: Error;
+    NoConnection: Error;
 }
 
 export const Errors: IErrors = {
-    NoEvent: new Error('Such event not found')
+    NoEvent: new Error('Such event not found'),
+    NoConnection: new Error('Connection found')
 };
 
 export type SubscriptionHandler = (connection: string, event: IEvent) => Promise<void> | void;
@@ -19,14 +22,14 @@ export type ErrorHandler = (connection: string, error: Error) => Promise<void> |
 export type DisconnectHandler = (connection: string) => Promise<void> | void;
 
 export class SocketIOEventsCollector {
-    private events: { [connection: string]: { [name: string]: IEvent[] } };
+    private eventsStorage: { [connection: string]: { [name: string]: IEvent[] } };
     private subscriptions: { [connection: string]: { [name: string]: SubscriptionHandler[] } };
     private errorsSubscriptions: ErrorHandler[];
     private disconnectSubscriptions: DisconnectHandler[];
     private subscriptionsToAll: SubscriptionHandler[];
 
     constructor() {
-        this.events = {};
+        this.eventsStorage = {};
         this.subscriptions = {};
         this.errorsSubscriptions = [];
         this.disconnectSubscriptions = [];
@@ -54,19 +57,49 @@ export class SocketIOEventsCollector {
     }
 
     public containConnection(connection: string) {
-        return this.events[connection] !== undefined;
+        return this.eventsStorage[connection] !== undefined;
     }
 
     public addConnection(connection: string) {
         if (this.containConnection(connection)) {
             return;
         }
-        this.events[connection] = {};
+        this.eventsStorage[connection] = {};
+    }
+
+    public *connections(): IterableIterator<string> {
+        for (const connection in this.eventsStorage) {
+            if (this.eventsStorage.hasOwnProperty(connection)) {
+                yield connection;
+            }
+        }
+    }
+
+    public *eventsCollections(connection: string): IterableIterator<string> {
+        if (!this.containConnection(connection)) {
+            throw Errors.NoConnection;
+        }
+        for (const eventCollection in this.eventsStorage[connection]) {
+            if (this.eventsStorage[connection].hasOwnProperty(eventCollection)) {
+                yield eventCollection;
+            }
+        }
+    }
+
+    public *events(connection: string, eventName: string): IterableIterator<IEvent> {
+        if (!this.containEvent(connection, eventName)) {
+            throw Errors.NoEvent;
+        }
+        for (const event of this.eventsStorage[connection][eventName]) {
+            yield event;
+        }
+
     }
 
     public containEvent(connection: string, event: string | IEvent) {
         event = this.eventName(event);
-        return this.events[connection] !== undefined && this.events[connection][event as string] !== undefined;
+        return this.eventsStorage[connection] !== undefined
+            && this.eventsStorage[connection][event as string] !== undefined;
     }
 
     private eventName(event: IEvent | string) {
@@ -81,7 +114,7 @@ export class SocketIOEventsCollector {
         if (!this.containEvent(connection, event)) {
             throw Errors.NoEvent;
         }
-        return this.events[connection][event as string][index];
+        return this.eventsStorage[connection][event as string][index];
 
     }
 
@@ -95,10 +128,10 @@ export class SocketIOEventsCollector {
 
     public addEvent(connection: string, event: IEvent) {
         this.addConnection(connection);
-        if (this.events[connection][event.name] === undefined) {
-            this.events[connection][event.name] = [];
+        if (this.eventsStorage[connection][event.name] === undefined) {
+            this.eventsStorage[connection][event.name] = [];
         }
-        this.events[connection][event.name].push(event);
+        this.eventsStorage[connection][event.name].push(event);
         this.callSubscriptions(connection, event);
     }
 

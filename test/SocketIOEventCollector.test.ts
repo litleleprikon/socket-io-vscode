@@ -1,5 +1,7 @@
-import { SocketIOEventsCollector as Collector, IEvent, SubscriptionHandler,
-    ErrorHandler, DisconnectHandler, Errors as CollectorErrors } from '../src/SocketIOEventsCollector';
+import {
+    SocketIOEventsCollector as Collector, IEvent, SubscriptionHandler,
+    ErrorHandler, DisconnectHandler, Errors as CollectorErrors
+} from '../src/SocketIOEventsCollector';
 import { assert, expect } from 'chai';
 
 suite('SocketIOEventsCollector Tests', () => {
@@ -9,6 +11,19 @@ suite('SocketIOEventsCollector Tests', () => {
         collector.addConnection(connectionName);
         collector.addConnection(connectionName);
         assert.isTrue(collector.containConnection(connectionName), 'Connection did not added');
+    });
+
+    test('Iterate connections', async () => {
+        const collector: Collector = new Collector();
+        const connectionName: string = 'Test connection';
+        const anotherConnectionName: string = 'Another Test connection';
+        collector.addConnection(connectionName);
+        collector.addConnection(anotherConnectionName);
+        let counter = 0;
+        for (const connection of collector.connections()) {
+            counter++;
+        }
+        assert.strictEqual(counter, 2);
     });
 
     test('Add event', async () => {
@@ -23,6 +38,52 @@ suite('SocketIOEventsCollector Tests', () => {
 
         collector.addEvent(connectionName, event);
         assert.isTrue(collector.containEvent(connectionName, event), 'Event did not added');
+    });
+
+    test('Iterate event collections', async () => {
+        const collector: Collector = new Collector();
+        const connectionName: string = 'Test connection';
+        const event: IEvent = {
+            name: 'Test',
+            datetime: new Date(),
+            data: { test: 'test' },
+            connection: connectionName
+        };
+
+        let counter = 0;
+        collector.addEvent(connectionName, event);
+        for (const colleciton of collector.eventsCollections(connectionName)) {
+            counter++;
+        }
+        assert.strictEqual(counter, 1);
+        expect(() => {
+            for (const tmp of collector.eventsCollections('nonexistent collection')) {
+                counter++;
+            }
+        }).throw(CollectorErrors.NoConnection);
+    });
+
+    test('Iterate events', async () => {
+        const collector: Collector = new Collector();
+        const connectionName: string = 'Test connection';
+        const event: IEvent = {
+            name: 'Test',
+            datetime: new Date(),
+            data: { test: 'test' },
+            connection: connectionName
+        };
+
+        let counter = 0;
+        collector.addEvent(connectionName, event);
+        for (const colleciton of collector.events(connectionName, event.name)) {
+            counter++;
+        }
+        assert.strictEqual(counter, 1);
+        expect(() => {
+            for (const tmp of collector.events('nonexistent collection', 'nonexistent event')) {
+                counter++;
+            }
+        }).throw(CollectorErrors.NoEvent);
     });
 
     test('Add subscription', async () => {
@@ -122,6 +183,6 @@ suite('SocketIOEventsCollector Tests', () => {
         };
 
         collector.addEvent(connectionName, event);
-        expect(() => {collector.getEvent(connectionName, 'event', 1); }).throw(CollectorErrors.NoEvent);
+        expect(() => { collector.getEvent(connectionName, 'event', 1); }).throw(CollectorErrors.NoEvent);
     });
 });

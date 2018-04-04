@@ -13,13 +13,13 @@ export const Errors: IErrors = {
 export class SocketIOEventContentProvider implements TextDocumentContentProvider {
 
     public static readonly scheme = 'socketio-event';
-    public static readonly path = `/socket-io-event.json`;
+    public static readonly path = `socket-io-event.json`;
     private static sInstance: SocketIOEventContentProvider = null;
     private _onDidChange = new EventEmitter<Uri>();
-    private eventsColletor: SocketIOEventsCollector;
+    private eventsCollector: SocketIOEventsCollector;
 
     constructor(eventsCollector: SocketIOEventsCollector) {
-        this.eventsColletor = eventsCollector;
+        this.eventsCollector = eventsCollector;
 
         if (SocketIOEventContentProvider.sInstance) {
             SocketIOEventContentProvider.sInstance.dispose();
@@ -72,10 +72,10 @@ export class SocketIOEventContentProvider implements TextDocumentContentProvider
         }
     }
 
-    public provideTextDocumentContent(uri: Uri): string | Thenable<string> {
+    public provideTextDocumentContent(uri: Uri): string | string {
         const {connection, event, index} = SocketIOEventContentProvider.parseURI(uri);
-        const eventData = this.eventsColletor.getEvent(connection, event, index);
-        return JSON.stringify(eventData);
+        const eventData = this.eventsCollector.getEvent(connection, event, index);
+        return JSON.stringify(eventData.data);
     }
 
     // get onDidChange(): Event<Uri> {

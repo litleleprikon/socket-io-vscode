@@ -63,6 +63,6 @@ suite('SocketIOEventContentProvider', () => {
         };
         collector.addEvent('test', event);
         const uri = SocketIOEventContentProvider.createURI(event.connection, event.name, 0);
-        assert.strictEqual(provider.provideTextDocumentContent(uri), JSON.stringify(event));
+        assert.strictEqual(provider.provideTextDocumentContent(uri), JSON.stringify(event.data));
     });
 });

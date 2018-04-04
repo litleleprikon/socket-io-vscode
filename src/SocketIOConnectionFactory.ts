@@ -66,7 +66,7 @@ export class SocketIOConnectionFactory {
     private connections: { [uri: string]: SocketIOConnection };
     private readonly connectFn: io.connect;
     private eventsCollector: SocketIOEventsCollector;
-    private CONNECTION_TIMEOUT: number = 10;
+    private CONNECTION_TIMEOUT: number = 10000;
 
     constructor(connectFn: io.connect, eventsCollector: SocketIOEventsCollector) {
         this.connections = {};

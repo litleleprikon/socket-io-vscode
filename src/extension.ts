@@ -4,10 +4,10 @@
 import VSCommunicationLayer from './VSCommunicationLayer';
 import SocketIOEventsTreeProvider from './SocketIOEventsTreeProvider';
 import SocketIOEventContentProvider from './SocketIOEventContentProvider';
-import { commands, Disposable, window, workspace, ExtensionContext } from 'vscode';
-import { SocketIOEventsCollector } from './SocketIOEventsCollector';
+import { commands, Disposable, window, workspace, ExtensionContext, Uri } from 'vscode';
+import { SocketIOEventsCollector, IEvent } from './SocketIOEventsCollector';
 import { SocketIOConnectionFactory } from './SocketIOConnectionFactory';
-import {connect} from 'socket.io-client';
+import { connect } from 'socket.io-client';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the commands.registerCommand( is executed
@@ -20,7 +20,7 @@ export function activate(context: ExtensionContext) {
     }
 
     const collector: SocketIOEventsCollector = new SocketIOEventsCollector();
-    const treeProvider = new SocketIOEventsTreeProvider();
+    const treeProvider = new SocketIOEventsTreeProvider(collector);
     const dataContentProvider = new SocketIOEventContentProvider(collector);
     const connectionFactory = new SocketIOConnectionFactory(connect, collector);
     const ui = new VSCommunicationLayer(connectionFactory);
@@ -38,18 +38,12 @@ export function activate(context: ExtensionContext) {
         workspace.registerTextDocumentContentProvider(SocketIOEventContentProvider.scheme, dataContentProvider)
     );
 
-        // async openEmitedEventsByName (event: SocketIOEvent) {
-    //     var doc = vscode.window.activeTextEditor.document;
-    //     let uri = vscode.Uri.parse(`${SocketIOEventDataContentProvider.scheme}://./socket-io-event.json`)
-    //     // var untitledFile = doc.uri.with({
-    //     //     scheme: SocketIOEventDataContentProvider.scheme,
-    //     //     path: './socket-io-event.json'
-    //     // });
-    //     vscode.workspace.openTextDocument(uri);
-    //     // await vscode.window.showInformationMessage(`Opened events: ${event.name}`)
-    // }
-    // registerCommand('extension.openEmitedEventsByName', async (name) => {
-    //      await integration.openEmitedEventsByName(name) });
+    registerCommand('openEmittedEvent', async (event: IEvent, index: number) => {
+        // const doc = window.activeTextEditor.document;
+        const uri = SocketIOEventContentProvider.createURI(event.connection, event.name, index);
+        const doc = await workspace.openTextDocument(uri);
+        window.showTextDocument(doc);
+    });
     registerCommand('extension.connect', async () => { await ui.connectCalled(); });
     registerCommand('extension.emit', async () => { await ui.emitCalled(); });
     registerCommand('extension.on', async () => { await ui.onCalled(); });

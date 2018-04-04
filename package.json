@@ -66,11 +66,6 @@
                 "command": "extension.disconnect",
                 "title": "Disconnect",
                 "category": "Socket.io"
-            },
-            {
-                "command": "extension.openEventsByName",
-                "title": "Disconnect",
-                "category": "Socket.io"
             }
         ]
     },

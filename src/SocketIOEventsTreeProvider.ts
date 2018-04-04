@@ -1,21 +1,20 @@
 import { TreeDataProvider, TreeItem, Event, EventEmitter, TreeItemCollapsibleState, Command } from 'vscode';
-import { IEvent as SocketIOEvent } from './SocketIOEventsCollector';
+import { IEvent as SocketIOEvent, SocketIOEventsCollector } from './SocketIOEventsCollector';
 import * as path from 'path';
 
 export default class SocketIOEventsTreeProvider
-    implements TreeDataProvider<SocketIOEventsItem | SocketIOEventsNameItem> {
+    implements TreeDataProvider<SocketIOConnectionItem | SocketIOEventsItem | SocketIOEventsCollectionItem> {
 
     private _onDidChangeTreeData: EventEmitter<SocketIOEventsItem | undefined> =
         new EventEmitter<SocketIOEventsItem | undefined>();
     public readonly onDidChangeTreeData?: Event<SocketIOEventsItem> = this._onDidChangeTreeData.event;
-    private socketIOEvents: { [eventName: string]: SocketIOEvent[] };
+    private collector: SocketIOEventsCollector;
 
-    constructor() {
-        this.socketIOEvents = {};
-    }
-
-    public setData(data: { [eventName: string]: SocketIOEvent[] }) {
-        this.socketIOEvents = data;
+    constructor(collector: SocketIOEventsCollector) {
+        this.collector = collector;
+        collector.subscribeToAll(() => {
+            this.refresh();
+        });
     }
 
     public refresh(): void {
@@ -26,22 +25,29 @@ export default class SocketIOEventsTreeProvider
         return element;
     }
 
-    public getChildren(element?: SocketIOEventsItem | SocketIOEventsNameItem):
-        Thenable<Array<SocketIOEventsItem | SocketIOEventsNameItem>> {
-        return new Promise((resolve) => {
-            if (!element) {
-                const elements = Object.keys(this.socketIOEvents).map((value: string): SocketIOEventsNameItem => {
-                    return new SocketIOEventsNameItem(value);
-                });
-                resolve(elements);
-            } else if (element instanceof SocketIOEventsNameItem) {
-                const elements = this.socketIOEvents[element.name].map((value: SocketIOEvent): SocketIOEventsItem => {
-                    const name: string = value.datetime.toLocaleTimeString();
-                    return new SocketIOEventsItem(name, value);
-                });
-                resolve(elements);
+    public getChildren(element?: SocketIOEventsItem | SocketIOEventsCollectionItem | SocketIOConnectionItem):
+        Array<SocketIOEventsItem | SocketIOEventsCollectionItem | SocketIOConnectionItem> {
+        if (!element) {
+            const elements: SocketIOConnectionItem[] = [];
+            for (const connection of this.collector.connections()) {
+                elements.push(new SocketIOConnectionItem(connection));
             }
-        });
+            return elements;
+        } else if (element instanceof SocketIOConnectionItem) {
+            const elements: SocketIOEventsCollectionItem[] = [];
+            for (const eventName of this.collector.eventsCollections(element.connection)) {
+                elements.push(new SocketIOEventsCollectionItem(element.connection, eventName));
+            }
+            return elements;
+        } else if (element instanceof SocketIOEventsCollectionItem) {
+            const elements: SocketIOEventsItem[] = [];
+            let counter = 0;
+            for (const event of this.collector.events(element.connection, element.event)) {
+                elements.push(new SocketIOEventsItem(element.connection, element.event, counter++, event));
+            }
+            return elements;
+        }
+
     }
 }
 
@@ -62,26 +68,40 @@ class SocketIOEventsItem extends TreeItem {
     public command;
 
     constructor(
-        public readonly name: string,
-        public readonly value?: SocketIOEvent
+        public readonly connection: string,
+        public readonly event: string,
+        public readonly index: number,
+        public readonly value: SocketIOEvent
     ) {
-        super(name, TreeItemCollapsibleState.None);
+        super(value.datetime.toLocaleTimeString(), TreeItemCollapsibleState.None);
         this.command = {
-            command: 'extension.openEmitedEventsByName',
+            command: 'openEmittedEvent',
             title: 'test',
-            arguments: [this.value],
+            arguments: [this.value, this.index],
         };
         // this.iconPath = getIconPaths('Event');
     }
 }
 
-class SocketIOEventsNameItem extends TreeItem {
+class SocketIOEventsCollectionItem extends TreeItem {
     public iconPath;
 
     constructor(
-        public readonly name: string,
+        public readonly connection: string,
+        public readonly event: string,
     ) {
-        super(name, TreeItemCollapsibleState.Collapsed);
+        super(event, TreeItemCollapsibleState.Collapsed);
+        // this.iconPath = this.iconPath = getIconPaths('Events');
+    }
+}
+
+class SocketIOConnectionItem extends TreeItem {
+    public iconPath;
+
+    constructor(
+        public readonly connection: string,
+    ) {
+        super(connection, TreeItemCollapsibleState.Collapsed);
         // this.iconPath = this.iconPath = getIconPaths('Events');
     }
 }
