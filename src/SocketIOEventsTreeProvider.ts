@@ -1,54 +1,57 @@
 import { TreeDataProvider, TreeItem, Event, EventEmitter, TreeItemCollapsibleState, Command } from 'vscode';
-import { Event as SocketIOEvent } from './SocketIOConnection'
+import { IEvent as SocketIOEvent } from './SocketIOEventsCollector';
 import * as path from 'path';
 
-export default class SocketIOEventsTreeProvider implements TreeDataProvider<SocketIOEventsItem | SocketIOEventsNameItem> {
+export default class SocketIOEventsTreeProvider
+    implements TreeDataProvider<SocketIOEventsItem | SocketIOEventsNameItem> {
 
-    private _onDidChangeTreeData: EventEmitter<SocketIOEventsItem | undefined> = new EventEmitter<SocketIOEventsItem | undefined>();
-    readonly onDidChangeTreeData?: Event<SocketIOEventsItem> = this._onDidChangeTreeData.event;
+    private _onDidChangeTreeData: EventEmitter<SocketIOEventsItem | undefined> =
+        new EventEmitter<SocketIOEventsItem | undefined>();
+    public readonly onDidChangeTreeData?: Event<SocketIOEventsItem> = this._onDidChangeTreeData.event;
     private socketIOEvents: { [eventName: string]: SocketIOEvent[] };
 
     constructor() {
         this.socketIOEvents = {};
     }
 
-    setData(data: { [eventName: string]: SocketIOEvent[] }) {
+    public setData(data: { [eventName: string]: SocketIOEvent[] }) {
         this.socketIOEvents = data;
     }
 
-    refresh(): void {
+    public refresh(): void {
         this._onDidChangeTreeData.fire();
     }
 
-    getTreeItem(element: SocketIOEventsItem): TreeItem | Thenable<TreeItem> {
+    public getTreeItem(element: SocketIOEventsItem): TreeItem | Thenable<TreeItem> {
         return element;
     }
 
-    getChildren(element?: SocketIOEventsItem | SocketIOEventsNameItem): Thenable<(SocketIOEventsItem | SocketIOEventsNameItem)[]> {
+    public getChildren(element?: SocketIOEventsItem | SocketIOEventsNameItem):
+        Thenable<Array<SocketIOEventsItem | SocketIOEventsNameItem>> {
         return new Promise((resolve) => {
             if (!element) {
-                let elements = Object.keys(this.socketIOEvents).map((value: string): SocketIOEventsNameItem => {
+                const elements = Object.keys(this.socketIOEvents).map((value: string): SocketIOEventsNameItem => {
                     return new SocketIOEventsNameItem(value);
                 });
                 resolve(elements);
             } else if (element instanceof SocketIOEventsNameItem) {
-                let elements = this.socketIOEvents[element.name].map((value: SocketIOEvent): SocketIOEventsItem => {
-                    let name: string = value.datetime.toLocaleTimeString();
+                const elements = this.socketIOEvents[element.name].map((value: SocketIOEvent): SocketIOEventsItem => {
+                    const name: string = value.datetime.toLocaleTimeString();
                     return new SocketIOEventsItem(name, value);
                 });
-                resolve(elements)
+                resolve(elements);
             }
         });
     }
 }
 
 interface IIconPath {
-    light: string,
-    dark: string
+    light: string;
+    dark: string;
 }
 
 function getIconPaths(icon: string): IIconPath {
-    return <IIconPath> {
+    return {
         light: path.join(__filename, '..', '..', 'resources', 'light', `${icon}.png`),
         dark: path.join(__filename, '..', '..', 'resources', 'dark', `${icon}.png`)
     };

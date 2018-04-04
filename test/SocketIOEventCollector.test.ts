@@ -1,47 +1,127 @@
-import { SocketIOEventsCollector as Collector, IEvent, SubscriptionHandler } from '../src/SocketIOEventCollector';
+import { SocketIOEventsCollector as Collector, IEvent, SubscriptionHandler,
+    ErrorHandler, DisconnectHandler, Errors as CollectorErrors } from '../src/SocketIOEventsCollector';
 import { assert, expect } from 'chai';
 
-suite("SocketIOEventsCollector Tests", () => {
-    test("Add connection", async () => {
-        let collector: Collector = new Collector();
-        let connectionName: string = "Test connection";
+suite('SocketIOEventsCollector Tests', () => {
+    test('Add connection', async () => {
+        const collector: Collector = new Collector();
+        const connectionName: string = 'Test connection';
         collector.addConnection(connectionName);
         collector.addConnection(connectionName);
-        assert.isTrue(collector.containConnection(connectionName), "Connection did not added")
+        assert.isTrue(collector.containConnection(connectionName), 'Connection did not added');
     });
 
-    test("Add event", async () => {
-        let collector: Collector = new Collector();
-        let connectionName: string = "Test connection";
-        let event: IEvent = <IEvent>{
-            name: "Test",
+    test('Add event', async () => {
+        const collector: Collector = new Collector();
+        const connectionName: string = 'Test connection';
+        const event: IEvent = {
+            name: 'Test',
             datetime: new Date(),
-            data: { test: "test" },
+            data: { test: 'test' },
             connection: connectionName
-        }
+        };
 
         collector.addEvent(connectionName, event);
-        assert.isTrue(collector.containEvent(connectionName, event), "Event did not added")
+        assert.isTrue(collector.containEvent(connectionName, event), 'Event did not added');
     });
 
-    test("Add subscription", async () => {
-        let collector: Collector = new Collector();
-        let connectionName: string = "Test connection";
-        let event: IEvent = <IEvent>{
-            name: "Test",
+    test('Add subscription', async () => {
+        const collector: Collector = new Collector();
+        const connectionName: string = 'Test connection';
+        const event: IEvent = {
+            name: 'Test',
             datetime: new Date(),
-            data: { test: "test" },
+            data: { test: 'test' },
             connection: connectionName
-        }
+        };
         let handlerCalled: boolean = false;
-        let handler: SubscriptionHandler = (connection: string, event: IEvent) => {
+        const handler: SubscriptionHandler = (connection: string, event: IEvent) => {
             handlerCalled = true;
-        }
+        };
 
         collector.subscribe(connectionName, event, handler);
-        assert.isTrue(collector.checkSubscriptionExists(connectionName, event), "Subscription did not added")
+        assert.isTrue(collector.checkSubscriptionExists(connectionName, event), 'Subscription did not added');
 
         collector.addEvent(connectionName, event);
-        assert.isTrue(handlerCalled, "Subscription did not called")
+        assert.isTrue(handlerCalled, 'Subscription did not called');
+    });
+
+    test('Add subscription to all', async () => {
+        const collector: Collector = new Collector();
+        const connectionName: string = 'Test connection';
+        const event: IEvent = {
+            name: 'Test',
+            datetime: new Date(),
+            data: { test: 'test' },
+            connection: connectionName
+        };
+        let handlerCalled: boolean = false;
+        const handler: SubscriptionHandler = (connection: string, event: IEvent) => {
+            handlerCalled = true;
+        };
+
+        collector.subscribeToAll(handler);
+        collector.addEvent(connectionName, event);
+        assert.isTrue(handlerCalled, 'Subscription did not called');
+    });
+
+    test('Add error subscription', async () => {
+        const collector: Collector = new Collector();
+        let handlerCalled: boolean = false;
+        const handler: ErrorHandler = (connection: string, error: Error) => {
+            handlerCalled = true;
+        };
+        collector.onError(handler);
+
+        collector.errored('Hello', new Error());
+        assert.isTrue(handlerCalled, 'Subscription did not called');
+    });
+
+    test('Add disconnect subscription', async () => {
+        const collector: Collector = new Collector();
+        let handlerCalled: boolean = false;
+        const handler: DisconnectHandler = (connection: string) => {
+            handlerCalled = true;
+        };
+        collector.onDisconnect(handler);
+
+        collector.disconnected('Hello');
+        assert.isTrue(handlerCalled, 'Subscription did not called');
+    });
+
+    test('Getting event', () => {
+        const collector: Collector = new Collector();
+        const connectionName: string = 'Test connection';
+        const event: IEvent = {
+            name: 'Test',
+            datetime: new Date(),
+            data: { test: 'test' },
+            connection: connectionName
+        };
+        let handlerCalled: boolean = false;
+        const handler: SubscriptionHandler = (connection: string, event: IEvent) => {
+            handlerCalled = true;
+        };
+
+        collector.addEvent(connectionName, event);
+        assert.strictEqual(collector.getEvent(connectionName, event, 0), event);
+    });
+
+    test('Getting nonexistent event', () => {
+        const collector: Collector = new Collector();
+        const connectionName: string = 'Test connection';
+        const event: IEvent = {
+            name: 'Test',
+            datetime: new Date(),
+            data: { test: 'test' },
+            connection: connectionName
+        };
+        let handlerCalled: boolean = false;
+        const handler: SubscriptionHandler = (connection: string, event: IEvent) => {
+            handlerCalled = true;
+        };
+
+        collector.addEvent(connectionName, event);
+        expect(() => {collector.getEvent(connectionName, 'event', 1); }).throw(CollectorErrors.NoEvent);
     });
 });

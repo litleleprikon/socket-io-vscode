@@ -7,8 +7,12 @@
             "es6"
         ],
         "sourceMap": true,
-        "rootDir": "."
+        "allowJs": true
     },
+    "include": [
+        "./src/**/*",
+        "./test/**/*"
+    ],
     "exclude": [
         "node_modules",
         ".vscode-test"
