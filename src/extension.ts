@@ -33,13 +33,17 @@ export function activate(context: ExtensionContext) {
         ui.onError(connection, error);
     });
 
-    const providerRegistrations = Disposable.from(
+    const registrations = Disposable.from(
         window.registerTreeDataProvider('socket-io-events', treeProvider),
-        workspace.registerTextDocumentContentProvider(SocketIOEventContentProvider.scheme, dataContentProvider)
+        workspace.registerTextDocumentContentProvider(SocketIOEventContentProvider.scheme, dataContentProvider),
+        connectionFactory,
+        treeProvider,
+        ui
     );
 
+    context.subscriptions.push(registrations);
+
     registerCommand('openEmittedEvent', async (event: IEvent, index: number) => {
-        // const doc = window.activeTextEditor.document;
         const uri = SocketIOEventContentProvider.createURI(event.connection, event.name, index);
         const doc = await workspace.openTextDocument(uri);
         window.showTextDocument(doc);

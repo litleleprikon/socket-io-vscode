@@ -1,5 +1,5 @@
 import { connect } from 'socket.io-client';
-import { Event } from 'vscode';
+import { Event, Disposable } from 'vscode';
 export interface IEvent {
     name: string;
     datetime: Date;
@@ -21,19 +21,27 @@ export type SubscriptionHandler = (connection: string, event: IEvent) => Promise
 export type ErrorHandler = (connection: string, error: Error) => Promise<void> | void;
 export type DisconnectHandler = (connection: string) => Promise<void> | void;
 
-export class SocketIOEventsCollector {
+export class SocketIOEventsCollector implements Disposable {
     private eventsStorage: { [connection: string]: { [name: string]: IEvent[] } };
     private subscriptions: { [connection: string]: { [name: string]: SubscriptionHandler[] } };
     private errorsSubscriptions: ErrorHandler[];
     private disconnectSubscriptions: DisconnectHandler[];
-    private subscriptionsToAll: SubscriptionHandler[];
+    private broadcastSubscriptions: SubscriptionHandler[];
 
     constructor() {
         this.eventsStorage = {};
         this.subscriptions = {};
         this.errorsSubscriptions = [];
         this.disconnectSubscriptions = [];
-        this.subscriptionsToAll = [];
+        this.broadcastSubscriptions = [];
+    }
+
+    public dispose() {
+        this.eventsStorage = null;
+        this.subscriptions = null;
+        this.errorsSubscriptions = null;
+        this.disconnectSubscriptions = null;
+        this.broadcastSubscriptions = null;
     }
 
     public errored(connection: string, error: Error) {
@@ -136,7 +144,7 @@ export class SocketIOEventsCollector {
     }
 
     public subscribeToAll(handler: SubscriptionHandler) {
-        this.subscriptionsToAll.push(handler);
+        this.broadcastSubscriptions.push(handler);
     }
 
     public subscribe(connection: string, event: IEvent | string, handler: SubscriptionHandler) {
@@ -148,7 +156,7 @@ export class SocketIOEventsCollector {
     }
 
     private callSubscriptions(connection: string, event: IEvent) {
-        for (const handler of this.subscriptionsToAll) {
+        for (const handler of this.broadcastSubscriptions) {
             handler(connection, event);
         }
         if (!this.checkSubscriptionExists(connection, event)) {

@@ -73,7 +73,7 @@ export class SocketIOEventContentProvider implements TextDocumentContentProvider
     }
 
     public provideTextDocumentContent(uri: Uri): string | string {
-        const {connection, event, index} = SocketIOEventContentProvider.parseURI(uri);
+        const { connection, event, index } = SocketIOEventContentProvider.parseURI(uri);
         const eventData = this.eventsCollector.getEvent(connection, event, index);
         return JSON.stringify(eventData.data);
     }

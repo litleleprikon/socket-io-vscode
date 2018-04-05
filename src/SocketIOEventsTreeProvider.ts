@@ -1,9 +1,10 @@
-import { TreeDataProvider, TreeItem, Event, EventEmitter, TreeItemCollapsibleState, Command } from 'vscode';
+import { TreeDataProvider, TreeItem, Event, EventEmitter, TreeItemCollapsibleState, Command, Disposable } from 'vscode';
 import { IEvent as SocketIOEvent, SocketIOEventsCollector } from './SocketIOEventsCollector';
 import * as path from 'path';
 
-export default class SocketIOEventsTreeProvider
-    implements TreeDataProvider<SocketIOConnectionItem | SocketIOEventsItem | SocketIOEventsCollectionItem> {
+export class SocketIOEventsTreeProvider
+    implements TreeDataProvider<SocketIOConnectionItem | SocketIOEventsItem | SocketIOEventsCollectionItem>,
+    Disposable {
 
     private _onDidChangeTreeData: EventEmitter<SocketIOEventsItem | undefined> =
         new EventEmitter<SocketIOEventsItem | undefined>();
@@ -17,11 +18,19 @@ export default class SocketIOEventsTreeProvider
         });
     }
 
+    public dispose() {
+        this.collector.dispose();
+        this.collector = null;
+        this._onDidChangeTreeData.dispose();
+        this._onDidChangeTreeData = null;
+    }
+
     public refresh(): void {
         this._onDidChangeTreeData.fire();
     }
 
-    public getTreeItem(element: SocketIOEventsItem): TreeItem | Thenable<TreeItem> {
+    public getTreeItem(element: SocketIOEventsItem | SocketIOEventsCollectionItem | SocketIOConnectionItem):
+        TreeItem | Thenable<TreeItem> {
         return element;
     }
 
@@ -51,6 +60,8 @@ export default class SocketIOEventsTreeProvider
     }
 }
 
+export default SocketIOEventsTreeProvider;
+
 interface IIconPath {
     light: string;
     dark: string;
@@ -63,7 +74,7 @@ function getIconPaths(icon: string): IIconPath {
     };
 }
 
-class SocketIOEventsItem extends TreeItem {
+export class SocketIOEventsItem extends TreeItem {
     public iconPath;
     public command;
 
@@ -79,11 +90,11 @@ class SocketIOEventsItem extends TreeItem {
             title: 'test',
             arguments: [this.value, this.index],
         };
-        // this.iconPath = getIconPaths('Event');
+        this.iconPath = getIconPaths('Event');
     }
 }
 
-class SocketIOEventsCollectionItem extends TreeItem {
+export class SocketIOEventsCollectionItem extends TreeItem {
     public iconPath;
 
     constructor(
@@ -91,17 +102,17 @@ class SocketIOEventsCollectionItem extends TreeItem {
         public readonly event: string,
     ) {
         super(event, TreeItemCollapsibleState.Collapsed);
-        // this.iconPath = this.iconPath = getIconPaths('Events');
+        this.iconPath = this.iconPath = getIconPaths('Events');
     }
 }
 
-class SocketIOConnectionItem extends TreeItem {
+export class SocketIOConnectionItem extends TreeItem {
     public iconPath;
 
     constructor(
         public readonly connection: string,
     ) {
         super(connection, TreeItemCollapsibleState.Collapsed);
-        // this.iconPath = this.iconPath = getIconPaths('Events');
+        this.iconPath = this.iconPath = getIconPaths('Events');
     }
 }

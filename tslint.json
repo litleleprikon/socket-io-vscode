@@ -11,6 +11,7 @@
     "member-ordering": false,
     "prefer-conditional-expression": false,
     "no-var-requires": false,
+    "only-arrow-functions": false,
     "quotemark": [
       true,
       "single"

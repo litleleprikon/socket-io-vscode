@@ -185,4 +185,9 @@ suite('SocketIOEventsCollector Tests', () => {
         collector.addEvent(connectionName, event);
         expect(() => { collector.getEvent(connectionName, 'event', 1); }).throw(CollectorErrors.NoEvent);
     });
+
+    test('Dispose', () => {
+        const collector: Collector = new Collector();
+        collector.dispose();
+    });
 });

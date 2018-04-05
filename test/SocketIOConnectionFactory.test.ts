@@ -1,11 +1,15 @@
-import { SocketIOConnectionFactory, SocketIOConnection, EventCallback } from '../src/SocketIOConnectionFactory';
+import {
+    SocketIOConnectionFactory, SocketIOConnection,
+    EventCallback, ISocket, Connect, Errors as FactoryErrors
+} from '../src/SocketIOConnectionFactory';
 import { assert, expect } from 'chai';
-import { mock, SinonMock } from 'sinon';
+import { mock, SinonMock, spy } from 'sinon';
 import { SocketIOEventsCollector, IEvent } from '../src/SocketIOEventsCollector';
 import * as io from 'socket.io-client';
 
-class TestSocket implements io.Socket {
+export class TestSocket implements ISocket {
     private callback;
+    private connectCallback;
     private eventName: string;
     private disconnectCalled = false;
 
@@ -21,17 +25,33 @@ class TestSocket implements io.Socket {
         return this.eventName;
     }
 
-    public emit(event: string, data: any) {
-        this.callback(data);
+    public connect() {
+        this.connectCallback();
     }
 
-    public on(event: string, callback) {
+    public emit(event: string, data?: any): ISocket {
+        this.callback(data);
+        return this;
+    }
+
+    public on(event: string, callback?: (data?: any) => void): ISocket {
+        if (event === 'connect') {
+            this.connectCallback = callback;
+            return this;
+        }
         this.eventName = event;
         this.callback = callback;
+        return this;
     }
 
-    public disconnect() {
+    public disconnect(): ISocket {
         this.disconnectCalled = true;
+        return this;
+    }
+
+    public close(): ISocket {
+        this.disconnectCalled = true;
+        return this;
     }
 }
 
@@ -71,43 +91,71 @@ suite('SocketIOConnection Tests', () => {
 });
 
 suite('SocketIOConnectionFactory Tests', () => {
-    function createConnectFunc(testSocket) {
-        return (url: string, options?: object) => io.Socket = (): io.Socket => {
-            return testSocket;
-        };
-    }
-
     const initFactory = (): {
         collector: SocketIOEventsCollector,
         testSocket: TestSocket,
-        connectFn: (url: string, options?: object) => io.Socket,
         collectorMock: SinonMock,
         factory: SocketIOConnectionFactory
     } => {
         const testSocket = new TestSocket();
-        const connectFn = createConnectFunc(testSocket);
+        const connect: Connect = (url: string, options?: object): ISocket => {
+            setTimeout(() => { testSocket.connect(); }, 50);
+            return testSocket;
+        };
         const collector = new SocketIOEventsCollector();
         const collectorMock = mock(collector);
-        const factory = new SocketIOConnectionFactory(connectFn, collector);
-        return { collector, testSocket, connectFn, collectorMock, factory };
+        const factory = new SocketIOConnectionFactory(connect, collector);
+        return { collector, testSocket, collectorMock, factory };
     };
 
     test('Initialization', async () => {
-        const { collector, connectFn, factory } = initFactory();
+        const { collector, factory } = initFactory();
     });
 
     test('Getting Connection', async () => {
-        const { collector, connectFn, factory } = initFactory();
-        // strange issue with callback is null
-        // const connection = await factory.getConnection('http://localhost');
+        const { collector, factory } = initFactory();
+        const connection = await factory.getConnection('http://localhost');
+        let error: Error = null;
+        await factory.getConnection('test').catch((caughtError: Error) => {
+            error = caughtError;
+        });
+        assert.strictEqual(error, FactoryErrors.URLError);
     });
 
-    // This lines are commented because function connect have weird behavior
     test('Test On', async () => {
-        const { collector, connectFn, factory } = initFactory();
-        // strange issue with callback is null
-        // const connection = await factory.getConnection('http://localhost');
-        // connection.on('hello');
+        const { collector, factory} = initFactory();
+        const connection = await factory.getConnection('http://localhost');
+        const data = {hello: 'world'};
+        connection.on('hello');
+        connection.emit('hello', data);
+        const event = collector.getEvent('http://localhost', 'hello', 0);
+        assert.strictEqual(event.data, data);
+    });
+
+    test('Connection error', async () => {
+        const { testSocket, collector } = initFactory();
+        const error = new Error();
+        const factory = new SocketIOConnectionFactory((url: string, options?: object): ISocket => {
+            setTimeout(() => {testSocket.emit('connect_error', error); }, 10);
+            return testSocket;
+        }, collector);
+        let caughtError: Error;
+        await factory.getConnection('http://localhost').catch((sentError: Error) => {
+            caughtError = sentError;
+        });
+        assert.strictEqual(caughtError, error);
+    });
+
+    test('Timeout reject', async () => {
+        const { testSocket, collector } = initFactory();
+        const factory = new SocketIOConnectionFactory((url: string, options?: object): ISocket => {
+            setTimeout(() => {testSocket.emit('connect_timeout', 20); }, 10);
+            return testSocket;
+        }, collector);
+        const errorSpy = spy();
+        await factory.getConnection('http://localhost').catch(errorSpy);
+        errorSpy.calledOnceWithExactly(FactoryErrors.ConnectTimeout);
+        // assert.strictEqual(error, FactoryErrors.ConnectTimeout);
     });
 
     test('URL validity check', async () => {
@@ -116,8 +164,13 @@ suite('SocketIOConnectionFactory Tests', () => {
         assert.isTrue(SocketIOConnectionFactory.checkURLValid('http://localhost/this'));
         assert.isTrue(SocketIOConnectionFactory.checkURLValid('https://localhost/this'));
         assert.isTrue(SocketIOConnectionFactory.checkURLValid('https://localhost:3000/this'));
-        const { factory } = initFactory();
-        // strange issue with callback is null
-        // expect(async () => {await factory.getConnection('localhost')}).to.throw();
+    });
+
+    test('Dispose', async () => {
+        const { factory, collectorMock } = initFactory();
+        const connection = await factory.getConnection('http://localhost');
+        collectorMock.expects('dispose').once();
+        factory.dispose();
+        collectorMock.verify();
     });
 });

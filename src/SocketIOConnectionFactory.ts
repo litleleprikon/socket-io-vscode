@@ -5,21 +5,33 @@ import { Disposable } from 'vscode';
 
 import io = require('socket.io-client');
 
-/**
- * Type of connect function
- */
-// type Connect = (uri: string, opts?: SocketIOClient.ConnectOpts) => SocketIOClient.Socket;
-type Connect = io.connect;
+interface IErrors {
+    URLError: Error;
+    ConnectTimeout: Error;
+}
 
+export const Errors: IErrors = {
+    URLError: new Error('Invalid URL. URL must have protocol, host, optionally port and path'),
+    ConnectTimeout: new Error('Connection timeout')
+};
+
+export interface ISocket {
+    on: (event: string, callback: (data?: any) => void) => ISocket;
+    emit: (event: string, data?: any) => ISocket;
+    disconnect: () => ISocket;
+    close: () => ISocket;
+}
+export type Connect = (url: string, opts?: object) => ISocket;
 export type EventCallback = (connection: string, data: any) => Promise<void>;
+
 /**
  * Safe binding around socket.io socket
  */
 export class SocketIOConnection implements Disposable {
-    private socket: io.Socket;
+    private socket: ISocket;
     private eventCallback: EventCallback;
 
-    constructor(socket: io.Socket, eventCallback: EventCallback) {
+    constructor(socket: ISocket, eventCallback: EventCallback) {
         this.socket = socket;
         this.eventCallback = eventCallback;
     }
@@ -28,7 +40,7 @@ export class SocketIOConnection implements Disposable {
         return this.socket === null;
     }
 
-    public emit(event: string, data: any) {
+    public emit(event: string, data: null | string | object) {
         this.socket.emit(event, data);
     }
 
@@ -53,7 +65,7 @@ export class SocketIOConnection implements Disposable {
 /**
  * Class to create connections
  */
-export class SocketIOConnectionFactory {
+export class SocketIOConnectionFactory implements Disposable {
 
     public static checkURLValid(url: string) {
         const parsed = parse(url);
@@ -64,11 +76,11 @@ export class SocketIOConnectionFactory {
     }
 
     private connections: { [uri: string]: SocketIOConnection };
-    private readonly connectFn: io.connect;
+    private readonly connectFn: Connect;
     private eventsCollector: SocketIOEventsCollector;
     private CONNECTION_TIMEOUT: number = 10000;
 
-    constructor(connectFn: io.connect, eventsCollector: SocketIOEventsCollector) {
+    constructor(connectFn: Connect, eventsCollector: SocketIOEventsCollector) {
         this.connections = {};
         this.connectFn = connectFn;
         this.eventsCollector = eventsCollector;
@@ -76,7 +88,7 @@ export class SocketIOConnectionFactory {
 
     public async getConnection(url: string, timeout: number = this.CONNECTION_TIMEOUT): Promise<SocketIOConnection> {
         if (!SocketIOConnectionFactory.checkURLValid(url)) {
-            throw new URIError('Invalid URL. URL\'s must be like http://localhost:3000');
+            throw Errors.URLError;
         }
         if (this.connections[url] === undefined) {
             this.connections[url] = await this.createConnection(url, timeout);
@@ -84,11 +96,11 @@ export class SocketIOConnectionFactory {
         return this.connections[url];
     }
 
-    public createConnection(url: string, timeout: number): Promise<any> {
+    private createConnection(url: string, timeout: number): Promise<any> {
         const _self = this;
 
         const makeConnection: Promise<any> = new Promise((resolve, reject) => {
-            const socket = _self.connectFn(url, { timeout });
+            const socket: ISocket = _self.connectFn(url, { timeout });
             socket
                 .on('connect', () => {
                     resolve(new SocketIOConnection(socket, async (event: string, data: any) => {
@@ -101,7 +113,7 @@ export class SocketIOConnectionFactory {
                     }));
                 })
                 .on('error', (error) => {
-                    _self.eventsCollector.errored(url, error);
+                    _self.eventsCollector.errored(url, error as Error);
                 })
                 .on('disconnect', () => {
                     _self.eventsCollector.disconnected(url);
@@ -109,7 +121,7 @@ export class SocketIOConnectionFactory {
                 })
                 .on('connect_timeout', (timeout: number) => {
                     socket.close();
-                    reject(new Error('Connection timeout'));
+                    reject(Errors.ConnectTimeout);
                 })
                 .on('connect_error', (error: Error) => {
                     socket.close();
@@ -117,5 +129,16 @@ export class SocketIOConnectionFactory {
                 });
         });
         return makeConnection;
+    }
+
+    public dispose() {
+        for (const connection in this.connections) {
+            if (this.connections.hasOwnProperty(connection)) {
+                this.connections[connection].dispose();
+            }
+        }
+        this.eventsCollector.dispose();
+        this.connections = null;
+        this.eventsCollector = null;
     }
 }

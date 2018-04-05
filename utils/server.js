@@ -7,12 +7,20 @@ console.log("started");
 io.on('connect', (socket) => {
     console.log("connected");
 
-    socket.on('hello', (data) => {
-        console.log(`client: ${socket.client}, data:\n${JSON.stringify(data)}`)
-    });
-
-    setInterval(() => {
+    const intervalId = setInterval(() => {
         console.log('hello');
         socket.emit('hello', {'hello': 'world'});
     }, 10000);
+
+    socket.on('hello', (data) => {
+        console.log(`client: ${socket.client.conn}`);
+        console.log('data: ', JSON.stringify(data));
+        console.log('hello: ', data.hello);
+    });
+
+    socket.on('disconnect', () => {
+        clearInterval(intervalId);
+        console.log('disconnected');
+    });
+
 })

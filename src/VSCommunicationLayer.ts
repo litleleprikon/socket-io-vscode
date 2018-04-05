@@ -21,7 +21,7 @@ export default class VSCommunicationLayer implements Disposable {
     }
 
     public async connectCalled() {
-        const url: string = await window.showInputBox({prompt: 'Please input URL to connect'});
+        const url: string = await window.showInputBox({ prompt: 'Please input URL to connect' });
         try {
             const connection: SocketIOConnection = await this.connectionFactory.getConnection(url);
             this.connection = connection;
@@ -40,15 +40,19 @@ export default class VSCommunicationLayer implements Disposable {
     }
 
     public async emitCalled() {
-        const event: string = await window.showInputBox({prompt: 'Please type event name'});
-        const data: string = await window.showInputBox({prompt: 'Insert data in json to send'});
-        let dataObj: any;
+        const event: string = await window.showInputBox({ prompt: 'Please type event name' });
+        const data: string = await window.showInputBox({ prompt: 'Insert data in json to send' });
+        let dataObj: null | string | object;
         if (data.length > 0) {
-            dataObj = JSON.stringify(data);
+            try {
+                dataObj = JSON.parse(data);
+            } catch (ex) {
+                dataObj = data;
+            }
         } else {
             dataObj = null;
         }
-        this.connection.emit(event, data);
+        this.connection.emit(event, dataObj);
     }
 
     public async onCalled() {
@@ -56,7 +60,7 @@ export default class VSCommunicationLayer implements Disposable {
             await window.showErrorMessage('Connection is not established');
             return;
         }
-        const event: string = await window.showInputBox({prompt: 'Please type event name'});
+        const event: string = await window.showInputBox({ prompt: 'Please type event name' });
         if (event.length === 0) {
             await window.showErrorMessage('You do not specified event name');
             return;
