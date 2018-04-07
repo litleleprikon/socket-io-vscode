@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="206px" height="206px" viewBox="0 0 206 206" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 48.2 (47327) - http://www.bohemiancoding.com/sketch -->
+    <title>Server</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Light" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Server" transform="translate(-13.000000, -9.000000)">
+            <g id="Group" transform="translate(21.000000, 17.000000)">
+                <circle id="Oval" stroke="#797979" stroke-width="15" cx="95" cy="95" r="95"></circle>
+                <polygon id="Rectangle" fill="#797979" points="137 34.7005112 100.492141 90 70 90"></polygon>
+                <polygon id="Rectangle-Copy" fill="#797979" transform="translate(86.500000, 127.649744) scale(-1, -1) translate(-86.500000, -127.649744) " points="120 100 83.4921415 155.299489 53 155.299489"></polygon>
+            </g>
+            <rect id="Rectangle-2" x="0" y="0" width="232" height="223"></rect>
+        </g>
+    </g>
+</svg>

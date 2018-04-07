@@ -1,80 +1,118 @@
-import { TreeDataProvider, TreeItem, Event, EventEmitter, TreeItemCollapsibleState, Command } from 'vscode';
-import { Event as SocketIOEvent } from './SocketIOConnection'
+import { TreeDataProvider, TreeItem, Event, EventEmitter, TreeItemCollapsibleState, Command, Disposable } from 'vscode';
+import { IEvent as SocketIOEvent, SocketIOEventsCollector } from './SocketIOEventsCollector';
 import * as path from 'path';
 
-export default class SocketIOEventsTreeProvider implements TreeDataProvider<SocketIOEventsItem | SocketIOEventsNameItem> {
+export class SocketIOEventsTreeProvider
+    implements TreeDataProvider<SocketIOConnectionItem | SocketIOEventsItem | SocketIOEventsCollectionItem>,
+    Disposable {
 
-    private _onDidChangeTreeData: EventEmitter<SocketIOEventsItem | undefined> = new EventEmitter<SocketIOEventsItem | undefined>();
-    readonly onDidChangeTreeData?: Event<SocketIOEventsItem> = this._onDidChangeTreeData.event;
-    private socketIOEvents: { [eventName: string]: SocketIOEvent[] };
+    private _onDidChangeTreeData: EventEmitter<SocketIOEventsItem | undefined> =
+        new EventEmitter<SocketIOEventsItem | undefined>();
+    public readonly onDidChangeTreeData?: Event<SocketIOEventsItem> = this._onDidChangeTreeData.event;
+    private collector: SocketIOEventsCollector;
 
-    constructor() {
-        this.socketIOEvents = {};
+    constructor(collector: SocketIOEventsCollector) {
+        this.collector = collector;
+        collector.subscribeToAll(() => {
+            this.refresh();
+        });
     }
 
-    setData(data: { [eventName: string]: SocketIOEvent[] }) {
-        this.socketIOEvents = data;
+    public dispose() {
+        this.collector.dispose();
+        this.collector = null;
+        this._onDidChangeTreeData.dispose();
+        this._onDidChangeTreeData = null;
     }
 
-    refresh(): void {
+    public refresh(): void {
         this._onDidChangeTreeData.fire();
     }
 
-    getTreeItem(element: SocketIOEventsItem): TreeItem | Thenable<TreeItem> {
+    public getTreeItem(element: SocketIOEventsItem | SocketIOEventsCollectionItem | SocketIOConnectionItem):
+        TreeItem | Thenable<TreeItem> {
         return element;
     }
 
-    getChildren(element?: SocketIOEventsItem | SocketIOEventsNameItem): Thenable<(SocketIOEventsItem | SocketIOEventsNameItem)[]> {
-        return new Promise((resolve) => {
-            if (!element) {
-                let elements = Object.keys(this.socketIOEvents).map((value: string): SocketIOEventsNameItem => {
-                    return new SocketIOEventsNameItem(value);
-                });
-                resolve(elements);
-            } else if (element instanceof SocketIOEventsNameItem) {
-                let elements = this.socketIOEvents[element.name].map((value: SocketIOEvent): SocketIOEventsItem => {
-                    let name: string = value.datetime.toLocaleTimeString();
-                    return new SocketIOEventsItem(name, value);
-                });
-                resolve(elements)
+    public getChildren(element?: SocketIOEventsItem | SocketIOEventsCollectionItem | SocketIOConnectionItem):
+        Array<SocketIOEventsItem | SocketIOEventsCollectionItem | SocketIOConnectionItem> {
+        if (!element) {
+            const elements: SocketIOConnectionItem[] = [];
+            for (const connection of this.collector.connections()) {
+                elements.push(new SocketIOConnectionItem(connection));
             }
-        });
+            return elements;
+        } else if (element instanceof SocketIOConnectionItem) {
+            const elements: SocketIOEventsCollectionItem[] = [];
+            for (const eventName of this.collector.eventsCollections(element.connection)) {
+                elements.push(new SocketIOEventsCollectionItem(element.connection, eventName));
+            }
+            return elements;
+        } else if (element instanceof SocketIOEventsCollectionItem) {
+            const elements: SocketIOEventsItem[] = [];
+            let counter = 0;
+            for (const event of this.collector.events(element.connection, element.event)) {
+                elements.push(new SocketIOEventsItem(element.connection, element.event, counter++, event));
+            }
+            return elements;
+        }
+
     }
 }
 
-class SocketIOEventsItem extends TreeItem {
+export default SocketIOEventsTreeProvider;
+
+interface IIconPath {
+    light: string;
+    dark: string;
+}
+
+function getIconPaths(icon: string): IIconPath {
+    return {
+        light: path.join(__filename, `../../resources/light/${icon}.svg`),
+        dark: path.join(__filename, `../../resources/dark/${icon}.svg`)
+    };
+}
+
+export class SocketIOEventsItem extends TreeItem {
     public iconPath;
     public command;
 
     constructor(
-        public readonly name: string,
-        // public readonly collapsibleState: TreeItemCollapsibleState,
-        // public readonly command?: Command,
-        public readonly value?: SocketIOEvent
+        public readonly connection: string,
+        public readonly event: string,
+        public readonly index: number,
+        public readonly value: SocketIOEvent
     ) {
-        super(name, TreeItemCollapsibleState.None);
+        super(value.datetime.toLocaleTimeString(), TreeItemCollapsibleState.None);
         this.command = {
-            command: 'extension.openEmitedEventsByName',
+            command: 'openEmittedEvent',
             title: 'test',
-            arguments: [this.value],
+            arguments: [this.value, this.index],
         };
-        this.iconPath = {
-            light: path.join(__filename, '..', '..', 'resources', 'light', 'Event.png'),
-            dark: path.join(__filename, '..', '..', 'resources', 'dark', 'Event.png')
-        };
+        this.iconPath = getIconPaths('Event');
     }
 }
 
-class SocketIOEventsNameItem extends TreeItem {
+export class SocketIOEventsCollectionItem extends TreeItem {
     public iconPath;
 
     constructor(
-        public readonly name: string,
+        public readonly connection: string,
+        public readonly event: string,
     ) {
-        super(name, TreeItemCollapsibleState.Collapsed);
-        this.iconPath = {
-            light: path.join(__filename, '..', '..', 'resources', 'light', 'Events.png'),
-            dark: path.join(__filename, '..', '..', 'resources', 'dark', 'Events.png')
-        };
+        super(event, TreeItemCollapsibleState.Collapsed);
+        this.iconPath = getIconPaths('Events');
+    }
+}
+
+export class SocketIOConnectionItem extends TreeItem {
+    public iconPath;
+
+    constructor(
+        public readonly connection: string,
+    ) {
+        super(connection, TreeItemCollapsibleState.Collapsed);
+        this.iconPath = getIconPaths('Server');
     }
 }

@@ -3,6 +3,15 @@
     "tslint:latest"
   ],
   "rules": {
+    "trailing-comma": false,
+    "max-classes-per-file": false,
+    "no-this-assignment": false,
+    "no-empty": false,
+    "no-shadowed-variable": false,
+    "member-ordering": false,
+    "prefer-conditional-expression": false,
+    "no-var-requires": false,
+    "only-arrow-functions": false,
     "quotemark": [
       true,
       "single"
@@ -33,17 +42,15 @@
     "ordered-imports": [
       false
     ],
-    "arrow-parens": [
-      true,
-      "ban-single-arg-parens"
-    ],
-    "no-console": [
-      true,
-      "log",
-      "debug",
-      "info",
-      "warn"
-    ],
+    "arrow-parens": false,
+    "no-console": false,
+    // "no-console": [
+    //   true,
+    //   "log",
+    //   "debug",
+    //   "info",
+    //   "warn"
+    // ],
     "no-implicit-dependencies": [
       true,
       "dev"
