@@ -1,29 +1,31 @@
 language: node_js
 node_js:
-  - "7.4"
-
+- '7.4'
 addons:
   code_climate:
-      repo_token:
-        secure: "P8BxBcnW5Zxsfl/m6bYPiX7esgQ/DlEeMIKUrtzMbtA/gqLAAyAUWO5jefcui6/uKKHwuxyNDd9XVfHrJJ9yUCcYg9eV/wt4+mFMeMMvSYRiZAtOfEeaEbGClEzedmiRVt8pnTmfnWaw2BYHHmwzIuPYqVkg10t1x2qu34FezMOt9eo2bgaRkSAns41Cl7YCzrSkuOzOcWvyykJ5pIhxGNCGTViZ1LxZFqWKPU5JsC8C0F+LxUBjSE/5bQZRTMWl/27N7sfiW5ZxwDHcWsOWa63M8GjtHoU8dUW4/+u0cfjMWvTolLmJpeDcW5rnP5oxAxvRuZWmAzXlm4lB3nlE7/E/OG32Kbvdjmwrf/BjjbnoZCdFYzmSNn/6K5mrq8JYTtWCLVY/Xp/sx7G1JcuIgZk2DVNthpqonwrgEIf0QGwYYPpmuLuufYU3xh73u3o13bQaUjH+lN/7J1ho0qnM45QEEakQHxkTRNTpe9GPUtsQSIfo9/lFOZam3USp6yIjsr0D3ULF0VcRGdEan5qDr+REn0WhvQR+9plhZNFz2+qH4SicC0rLvJJTd3v01hTKq8AcFZbIToENiZVsqpbMZNtXwnhFPBDv+fajr98Zz88dQWzkoRQmgJmSODPUJUQngOGMkBFh6NJDwaPucorGd+zl+3gyTIgg++MKTMhacYk="
-
+    repo_token:
+      secure: P8BxBcnW5Zxsfl/m6bYPiX7esgQ/DlEeMIKUrtzMbtA/gqLAAyAUWO5jefcui6/uKKHwuxyNDd9XVfHrJJ9yUCcYg9eV/wt4+mFMeMMvSYRiZAtOfEeaEbGClEzedmiRVt8pnTmfnWaw2BYHHmwzIuPYqVkg10t1x2qu34FezMOt9eo2bgaRkSAns41Cl7YCzrSkuOzOcWvyykJ5pIhxGNCGTViZ1LxZFqWKPU5JsC8C0F+LxUBjSE/5bQZRTMWl/27N7sfiW5ZxwDHcWsOWa63M8GjtHoU8dUW4/+u0cfjMWvTolLmJpeDcW5rnP5oxAxvRuZWmAzXlm4lB3nlE7/E/OG32Kbvdjmwrf/BjjbnoZCdFYzmSNn/6K5mrq8JYTtWCLVY/Xp/sx7G1JcuIgZk2DVNthpqonwrgEIf0QGwYYPpmuLuufYU3xh73u3o13bQaUjH+lN/7J1ho0qnM45QEEakQHxkTRNTpe9GPUtsQSIfo9/lFOZam3USp6yIjsr0D3ULF0VcRGdEan5qDr+REn0WhvQR+9plhZNFz2+qH4SicC0rLvJJTd3v01hTKq8AcFZbIToENiZVsqpbMZNtXwnhFPBDv+fajr98Zz88dQWzkoRQmgJmSODPUJUQngOGMkBFh6NJDwaPucorGd+zl+3gyTIgg++MKTMhacYk=
 before_install:
-  - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
-      sh -e /etc/init.d/xvfb start;
-      sleep 3;
-    fi
-
+- if [ $TRAVIS_OS_NAME == "linux" ]; then export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
+  sh -e /etc/init.d/xvfb start; sleep 3; fi
 install:
-  - npm install
-  - npm install -g codeclimate-test-reporter
-  - npm run vscode:prepublish
-
+- npm install
+- npm install -g codeclimate-test-reporter vsce
+- npm run vscode:prepublish
 script:
-  - npm test --silent
-
+- npm test --silent
 after_script:
-  - codeclimate-test-reporter < coverage/lcov.info
-
+- vsce package
+after_success:
+- bash <(curl -s https://codecov.io/bash)
+- codeclimate-test-reporter < coverage/lcov.info
 notifications:
   webhooks: https://fathomless-fjord-24024.herokuapp.com/notify
+deploy:
+  provider: releases
+  api_key:
+    secure: nXZ83vrQF1oV0qM53UZKwd3b6sRddcOeNPT19SZZbrqWCp+kEnpvVToStOy6G9jX52dGTo0n5JGmtTEQEPaheXB6kjMnIkT9v603+n/m9/CYMHJty79j1dRFe1+TucLa0EPRoHd2Pu4BGP9SP9PPYTjlDnvWJD29C7oSUZ45220PmZBXQt8L7Pqbc7vt8t0BfdJkuKI1dVPGxVSI7o36A5XPbYIT5rccgUGy3aGvSN/Alzs7EbPjaXsemF/nWtyj3snKsWwAenlj0oA1GECpcgCL4MGqp7fVDn6Diop+dytmsix0EFIYLWJrNBVFAZyQnDKsbi1Y8dZd3H1VaLu+GUVgZi9lZVhXCEsCxsu0xsX/TCkPdvpJaaJrEeNKGrSBQxFH2a2DdccOrnJ3YIsiVJTiqy6FAzVq0soxEkUQ4wR0rLMZ1c8OpXoUgAIpfpGnjuDpAOI6TBE/+f8dUKolvrb2hdNSNyJBBamBG5tFTLlmZLUGQQxA5U/ut5EJo5owZKkJ6BWG75soIsT1fD6mQa9pOYJqR0yy5u5RhPtTrVFgmTZ+wALMhF4MmB2/z3K9c/uA7oehrAInOKNZjMCBaF31XhJktOveS98mLHLyYTt83jDhwJMGVKBGvkSOzZ1zhbl3Mr8HcgvnlvPvS7wfF6d8VvtT0VqSb/Q+FfwL6nk=
+  file: socket-io-vscode-*.vsix
+  on:
+    tags: true
+    repo: litleleprikon/socket-io-vscode
