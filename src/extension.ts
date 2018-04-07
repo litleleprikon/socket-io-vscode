@@ -6,12 +6,10 @@ import SocketIOEventsTreeProvider from './SocketIOEventsTreeProvider';
 import SocketIOEventContentProvider from './SocketIOEventContentProvider';
 import { commands, Disposable, window, workspace, ExtensionContext, Uri } from 'vscode';
 import { SocketIOEventsCollector, IEvent } from './SocketIOEventsCollector';
-import { SocketIOConnectionFactory } from './SocketIOConnectionFactory';
+import { SocketIOConnectionFactory, Connect } from './SocketIOConnectionFactory';
 import { connect } from 'socket.io-client';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the commands.registerCommand( is executed
-export function activate(context: ExtensionContext) {
+export function start(context: ExtensionContext, connectFn: Connect) {
 
     function registerCommand(command: string, callback: (...args: any[]) => any, thisArg?: any): Disposable {
         const registeredCommand: Disposable = commands.registerCommand(command, callback);
@@ -22,7 +20,7 @@ export function activate(context: ExtensionContext) {
     const collector: SocketIOEventsCollector = new SocketIOEventsCollector();
     const treeProvider = new SocketIOEventsTreeProvider(collector);
     const dataContentProvider = new SocketIOEventContentProvider(collector);
-    const connectionFactory = new SocketIOConnectionFactory(connect, collector);
+    const connectionFactory = new SocketIOConnectionFactory(connectFn, collector);
     const ui = new VSCommunicationLayer(connectionFactory);
 
     collector.onDisconnect((connection: string) => {
@@ -54,8 +52,10 @@ export function activate(context: ExtensionContext) {
     registerCommand('extension.disconnect', async () => { await ui.disconnectCalled(); });
 }
 
-async function disconnect() {
-
+// this method is called when your extension is activated
+// your extension is activated the very first time the commands.registerCommand( is executed
+export function activate(context: ExtensionContext) {
+    start(context, connect);
 }
 
 // this method is called when your extension is deactivated

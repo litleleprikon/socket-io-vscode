@@ -69,8 +69,8 @@ interface IIconPath {
 
 function getIconPaths(icon: string): IIconPath {
     return {
-        light: path.join(__filename, '..', '..', 'resources', 'light', `${icon}.png`),
-        dark: path.join(__filename, '..', '..', 'resources', 'dark', `${icon}.png`)
+        light: path.join(__filename, `../../resources/light/${icon}.svg`),
+        dark: path.join(__filename, `../../resources/dark/${icon}.svg`)
     };
 }
 
@@ -102,7 +102,7 @@ export class SocketIOEventsCollectionItem extends TreeItem {
         public readonly event: string,
     ) {
         super(event, TreeItemCollapsibleState.Collapsed);
-        this.iconPath = this.iconPath = getIconPaths('Events');
+        this.iconPath = getIconPaths('Events');
     }
 }
 
@@ -113,6 +113,6 @@ export class SocketIOConnectionItem extends TreeItem {
         public readonly connection: string,
     ) {
         super(connection, TreeItemCollapsibleState.Collapsed);
-        this.iconPath = this.iconPath = getIconPaths('Events');
+        this.iconPath = getIconPaths('Server');
     }
 }

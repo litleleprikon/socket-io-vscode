@@ -2,7 +2,7 @@
     "name": "socket-io-vscode",
     "displayName": "Socket.io client for VSCode",
     "description": "Extension to communicate with Socket.io server from VSCode",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "publisher": "litleleprikon",
     "engines": {
         "vscode": "^1.19.0"
@@ -71,8 +71,8 @@
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
-        "build": "tsc -p ./",
-        "compile": "tsc -p ./",
+        "build": "npm run compile",
+        "compile": "tsc -p ./ && cp -r ./resources ./out",
         "watch": "tsc -watch -p ./",
         "postinstall": "node ./node_modules/vscode/bin/install",
         "test": "npm run build && node ./node_modules/vscode/bin/test",
