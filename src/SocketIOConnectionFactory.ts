@@ -1,9 +1,7 @@
-import { connect } from 'socket.io-client';
-import { parse, Url } from 'url';
-import { SocketIOEventsCollector, IEvent, ErrorHandler, DisconnectHandler } from './SocketIOEventsCollector';
+import { parse } from 'url';
+import { SocketIOEventsCollector } from './SocketIOEventsCollector';
 import { Disposable } from 'vscode';
 
-import io = require('socket.io-client');
 
 interface IErrors {
     URLError: Error;
@@ -55,7 +53,7 @@ export class SocketIOConnection implements Disposable {
     }
 
     public dispose() {
-        if (this.socket !== null) {
+        if (!this.isDisposed()) {
             this.disconnect();
             this.socket = null;
         }
@@ -119,7 +117,7 @@ export class SocketIOConnectionFactory implements Disposable {
                     _self.eventsCollector.disconnected(url);
                     delete _self.connections[url];
                 })
-                .on('connect_timeout', (timeout: number) => {
+                .on('connect_timeout', () => {
                     socket.close();
                     reject(Errors.ConnectTimeout);
                 })

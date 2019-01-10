@@ -1,6 +1,4 @@
-import SocketIOEventContentProvider from './SocketIOEventContentProvider';
 import { SocketIOConnection, SocketIOConnectionFactory } from './SocketIOConnectionFactory';
-import { SocketIOEventsCollector } from './SocketIOEventsCollector';
 import { Disposable, window } from 'vscode';
 
 /**

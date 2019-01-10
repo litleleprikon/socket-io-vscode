@@ -1,5 +1,4 @@
-import { connect } from 'socket.io-client';
-import { Event, Disposable } from 'vscode';
+import { Disposable } from 'vscode';
 export interface IEvent {
     name: string;
     datetime: Date;
