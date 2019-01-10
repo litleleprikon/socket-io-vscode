@@ -1,6 +1,5 @@
-import * as fs from 'fs';
 import { SocketIOEventsCollector, IEvent } from './SocketIOEventsCollector';
-import { TextDocumentContentProvider, Uri, EventEmitter, Event, workspace } from 'vscode';
+import { TextDocumentContentProvider, Uri, EventEmitter } from 'vscode';
 
 interface IErrors {
     InvalidURI: Error;
